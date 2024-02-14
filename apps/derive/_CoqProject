@@ -39,3 +39,7 @@ theories/derive/eqb.v
 theories/derive/eqbcorrect.v
 theories/derive/eqbOK.v
 theories/derive/eqType_ast.v
+theories/derive/finite_type.v
+theories/derive/finite.v
+theories/derive/eq_dec.v
+theories/derive/basis.v

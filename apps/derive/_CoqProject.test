@@ -32,6 +32,7 @@ tests/test_eqb.v
 tests/test_eqbcorrect.v
 tests/test_eqbOK.v
 tests/test_eqType_ast.v
+tests/test_finite_type.v
 
 examples/usage.v
 examples/readme.v
