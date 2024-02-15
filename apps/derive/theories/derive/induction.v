@@ -47,6 +47,6 @@ Elpi Accumulate derive Db derive.induction.db.
 Elpi Accumulate derive lp:{{
 
 dep1 "induction" "param1_functor".
-derivation (indt T) N (derive "induction" (derive.induction.main T N) (induction-db T _)).
+derivation (indt T) N ff (derive "induction" (derive.induction.main T N) (induction-db T _)).
 
 }}.

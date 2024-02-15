@@ -59,6 +59,6 @@ Elpi Accumulate derive File bcongr.
 Elpi Accumulate derive lp:{{
   
 dep1 "bcongr" "projK".
-derivation (indt T) N (derive "bcongr" (derive.bcongr.main T N) (derive.exists-indc T (K\bcongr-db K _))).
+derivation (indt T) N ff (derive "bcongr" (derive.bcongr.main T N) (derive.exists-indc T (K\bcongr-db K _))).
 
 }}.

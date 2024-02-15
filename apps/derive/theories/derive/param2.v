@@ -58,7 +58,7 @@ Elpi Accumulate derive File param2.
 Elpi Accumulate derive Db derive.param2.db.
 Elpi Accumulate derive lp:{{
 
-derivation T N (derive "param2" (derive.param2.main T N) (param-done T)).
+derivation T N ff (derive "param2" (derive.param2.main T N) (param-done T)).
 
 }}.
 

@@ -108,11 +108,18 @@ main T P CL :- main1 T P CL.
 pred main1 i:gref, i:bool, o:list prop.
 main1 T P CL :-
   if (P = tt) (Prefix is {coq.gref->id T} ^ "_") (Prefix = ""),
-  std.findall (derivation T Prefix _) L,
+  std.findall (derivation T Prefix _ _) L,
   if (L = [])
      (coq.error "no derivation found, did you Import derive.std?")
      true,
-  std.map L (x\r\ x = derivation _ _ r) DL,
+  std.map L (x\r\
+    if (get-option "recursive" _)
+       (x = derivation _ _ S r,
+        if (S is tt)
+           (coq.error "Synterp actions not supported in recursive derive.")
+           true)
+       (x = derivation _ _ _ r)
+  ) DL,
   validate-only T DL,
   toposort DL SortedDL,
   chain T SortedDL CL.

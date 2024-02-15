@@ -53,27 +53,32 @@
 *)
 
 From elpi.apps.derive Extra Dependency "derive_hook.elpi" as derive_hook.
+From elpi.apps.derive Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
 From elpi.apps.derive Extra Dependency "derive.elpi" as derive.
+From elpi.apps.derive Extra Dependency "derive_synterp.elpi" as derive_synterp.
 
 From elpi Require Import elpi.
+
+#[phase="both"]
+Elpi Db derive.with_attributes lp:{{
+  % runs P in a context where Coq #[attributes] are parsed
+  pred with-attributes i:prop.
+  with-attributes P :-
+    attributes A,
+    coq.parse-attributes A [
+      att "verbose" bool,
+      att "only" attmap,
+      att "recursive" bool,
+    ] Opts, !,
+    Opts => P.
+}}.
 
 Elpi Command derive.
 Elpi Accumulate File derive_hook.
 Elpi Accumulate File derive.
+Elpi Accumulate Db derive.with_attributes.
 
 Elpi Accumulate lp:{{
-
-% runs P in a context where Coq #[attributes] are parsed
-pred with-attributes i:prop.
-with-attributes P :-
-  attributes A,
-  coq.parse-attributes A [
-    att "verbose" bool,
-    att "only" attmap,
-    att "recursive" bool,
-  ] Opts, !,
-  Opts => P.
-
 main [str I] :- !,
   coq.locate I GR,
   with-attributes (derive.main GR tt _).
@@ -85,21 +90,32 @@ main _ :- usage.
 
 usage :-
   coq.error "Usage:  derive <inductive type/definition>\n\tderive Inductive name Params : Arity := Constructors.".
-
 }}.
+
+#[synterp] Elpi Accumulate File derive_synterp_hook.
+#[synterp] Elpi Accumulate File derive_synterp.
+#[synterp] Elpi Accumulate Db derive.with_attributes.
+
 #[synterp] Elpi Accumulate lp:{{
+  main [str I] :- !,
+    with-attributes (derive.main I tt).
+
   main [indt-decl D] :- !,
-    declare-module-for-ind D.
+    with-attributes (with_name D).
+
   main _.
 
-  pred declare-module-for-ind i:indt-decl.
-  declare-module-for-ind (parameter _ _ _ F) :-
-    pi p\ declare-module-for-ind (F p).
-  declare-module-for-ind (inductive N _ _ _) :-
-    coq.env.begin-module N none, coq.env.end-module _.
-  declare-module-for-ind (record N _ _ _) :-
-    coq.env.begin-module N none, coq.env.end-module _.
-
+  pred with_name i:indt-decl.
+  with_name (parameter _ _ _ F) :-
+    pi p\ with_name (F p).
+  with_name (inductive N _ _ _) :-
+    coq.env.begin-module N none,
+    derive.main N tt,
+    coq.env.end-module _.
+  with_name (record N _ _ _) :-
+    coq.env.begin-module N none,
+    derive.main N tt,
+    coq.env.end-module _.
 }}.
 Elpi Typecheck.
 Elpi Export derive.

@@ -48,6 +48,6 @@ Elpi Accumulate derive lp:{{
 
 dep1 "eqOK" "eqcorrect".
 dep1 "eqOK" "param1_trivial".
-derivation (indt T) Prefix (derive "eqOK" (derive.eqOK.main T N) (eqOK-done T)) :- N is Prefix ^ "eq_OK".
+derivation (indt T) Prefix ff (derive "eqOK" (derive.eqOK.main T N) (eqOK-done T)) :- N is Prefix ^ "eq_OK".
 
 }}.
