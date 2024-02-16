@@ -5,6 +5,7 @@
  *)
 
 From elpi.apps.derive Extra Dependency "derive_hook.elpi" as derive_hook.
+From elpi.apps.derive Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.
@@ -82,6 +83,11 @@ Elpi Accumulate derive lp:{{
   }
 }}.
 
+#[phase="both"] Elpi Accumulate derive lp:{{
+  dep1 "finite_type" "finite".
+  % NOTE: Finite implies eq_dec.
+}}.
+
 #[synterp] Elpi Accumulate derive lp:{{
   namespace derive.finite_type {
     pred main i:string, i:string, o:list prop.
@@ -96,7 +102,6 @@ Elpi Accumulate derive lp:{{
     done _.
   }
 
-  %dep1 "finite_type" "finite". %finite implies eq_dec
   derivation T Prefix (derive "finite_type" (derive.finite_type.main T Prefix) (done T)).
 }}.
 
@@ -128,7 +133,6 @@ Use an instance of the typeclass `ToN` to override the default behavior.
 ".
   }
 
-  dep1 "finite_type" "finite". %finite implies eq_dec
   derivation (indt T) Prefix tt (derive "finite_type" (derive.finite_type.main (indt T) Prefix) (finite-type-done (indt T))).
 }}.
 

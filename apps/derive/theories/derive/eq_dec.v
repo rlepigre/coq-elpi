@@ -5,6 +5,7 @@
  *)
 
 From elpi.apps.derive Extra Dependency "derive_hook.elpi" as derive_hook.
+From elpi.apps.derive Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.
@@ -29,6 +30,10 @@ Elpi Db derive.stdpp.eq_dec.db lp:{{
 }}.
 Elpi Accumulate derive Db derive.stdpp.eq_dec.db.
 Elpi Typecheck derive.
+
+#[synterp] Elpi Accumulate derive lp:{{
+  derivation T Prefix (derive "eq_dec" (cl\ cl = []) true).
+}}.
 
 Elpi Accumulate derive lp:{{
   /* [derive.eqdec.main TyGR Prefix Clauses] creates a global instance

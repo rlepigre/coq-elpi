@@ -5,6 +5,7 @@
  *)
 
 From elpi.apps.derive Extra Dependency "derive_hook.elpi" as derive_hook.
+From elpi.apps.derive Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.
@@ -139,6 +140,14 @@ Elpi Db derive.finite.db lp:{{
   }
 }}.
 
+#[phase="both"] Elpi Accumulate derive lp:{{
+  dep1 "finite" "eq_dec".
+}}.
+
+#[synterp] Elpi Accumulate derive lp:{{
+  derivation T Prefix (derive "finite" (cl\ cl = []) true).
+}}.
+
 Elpi Accumulate derive Db derive.finite.db.
 Elpi Accumulate derive lp:{{
   namespace derive.finite {
@@ -177,7 +186,6 @@ Example #3:
 
   }
 
-  dep1 "finite" "eq_dec".
   derivation
     (indt T) Prefix ff
     (derive "finite"
