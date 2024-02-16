@@ -5,6 +5,7 @@
 From elpi.apps.derive Extra Dependency "paramX_lib.elpi" as paramX.
 From elpi.apps.derive Extra Dependency "param1.elpi" as param1.
 From elpi.apps.derive Extra Dependency "derive_hook.elpi" as derive_hook.
+From elpi.apps.derive Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
 
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.
@@ -102,6 +103,11 @@ Register is_eq as elpi.derive.is_eq.
 Elpi Accumulate derive File paramX.
 Elpi Accumulate derive File param1.
 Elpi Accumulate derive Db derive.param1.db.
+
+#[synterp] Elpi Accumulate derive lp:{{
+  derivation _ _ (derive "param1" (cl\ cl = []) true).
+}}.
+
 Elpi Accumulate derive lp:{{
   
 pred derive.on_param1 i:inductive, i:(inductive -> string -> list prop -> prop), i:string, o:list prop.

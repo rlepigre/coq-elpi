@@ -4,6 +4,7 @@
    ------------------------------------------------------------------------- *)
 From elpi.apps.derive Extra Dependency "eq.elpi" as eq.
 From elpi.apps.derive Extra Dependency "derive_hook.elpi" as derive_hook.
+From elpi.apps.derive Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
 
 From Coq Require Import Bool.
 From elpi Require Import elpi.
@@ -54,6 +55,11 @@ Elpi Typecheck.
 (* hook into derive *)
 Elpi Accumulate derive Db derive.eq.db.
 Elpi Accumulate derive File eq.
+
+#[synterp] Elpi Accumulate derive lp:{{
+  derivation _ _ (derive "eq" (cl\ cl = []) true).
+}}.
+
 Elpi Accumulate derive lp:{{
   
 derivation (indt T) Prefix ff (derive "eq" (derive.eq.main T N) (eq-for T _)) :- N is Prefix ^ "eq".

@@ -5,6 +5,7 @@
 
 From elpi.apps.derive Extra Dependency "eqcorrect.elpi" as eqcorrect.
 From elpi.apps.derive Extra Dependency "derive_hook.elpi" as derive_hook.
+From elpi.apps.derive Extra Dependency "derive_synterp_hook.elpi" as derive_synterp_hook.
   
 From elpi Require Import elpi.
 From elpi.apps Require Import derive.
@@ -54,11 +55,19 @@ Elpi Typecheck.
 Elpi Accumulate derive File derive_hook.
 Elpi Accumulate derive File eqcorrect.
 Elpi Accumulate derive Db derive.eqcorrect.db.
-Elpi Accumulate derive lp:{{
-  
+
+#[phases=both] Elpi Accumulate derive lp:{{
 dep1 "eqcorrect" "induction".
 dep1 "eqcorrect" "eq".
 dep1 "eqcorrect" "eqK".
+}}.
+
+#[synterp] Elpi Accumulate derive lp:{{
+  derivation _ _ (derive "eqcorrect" (cl\ cl = []) true).
+}}.
+
+Elpi Accumulate derive lp:{{
+  
 
 derivation (indt T) Prefix ff (derive "eqcorrect" (derive.eqcorrect.main T N) (eqcorrect-db (indt T) _)) :- N is Prefix ^ "eq_correct".
 
