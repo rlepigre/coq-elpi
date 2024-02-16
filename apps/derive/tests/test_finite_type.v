@@ -138,7 +138,7 @@ From elpi.apps Require Import derive.
 
 Module Ty1.
   Variant ty := A | B | C | D.
-  #[only(finite_type)] derive ty.
+  #[only(finite_type),prefix="ty_"] derive ty.
 End Ty1.
 
 Module Ty2.

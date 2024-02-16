@@ -32,7 +32,7 @@ Elpi Accumulate derive Db derive.stdpp.eq_dec.db.
 Elpi Typecheck derive.
 
 #[synterp] Elpi Accumulate derive lp:{{
-  derivation T Prefix (derive "eq_dec" (cl\ cl = []) true).
+  derivation _ _ (derive "eq_dec" (cl\ cl = []) true).
 }}.
 
 Elpi Accumulate derive lp:{{
@@ -48,7 +48,7 @@ Elpi Accumulate derive lp:{{
     pred main i:gref, i:string, o:list prop.
     main TyGR Prefix Clauses :- std.do! [
       coq.gref->id TyGR TypeName,
-      InstanceName is TypeName ^ "_eq_dec",
+      InstanceName is Prefix ^ "eq_dec",
       TyEqDecision = {{ EqDecision lp:{{global TyGR}} }},
       std.assert-ok! (coq.elaborate-skeleton TyEqDecision _ ETyEqDecision) "[derive.eqdec] [TyEqDecision]",
       std.assert-ok! (coq.typecheck {{ lp:BoEqDecision : lp:ETyEqDecision }} _) "typechecking the [EqDecision t] instance failed",

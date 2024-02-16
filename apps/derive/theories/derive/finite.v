@@ -145,7 +145,7 @@ Elpi Db derive.finite.db lp:{{
 }}.
 
 #[synterp] Elpi Accumulate derive lp:{{
-  derivation T Prefix (derive "finite" (cl\ cl = []) true).
+  derivation _ _ (derive "finite" (cl\ cl = []) true).
 }}.
 
 Elpi Accumulate derive Db derive.finite.db.
@@ -153,11 +153,10 @@ Elpi Accumulate derive lp:{{
   namespace derive.finite {
     pred main i:gref, i:string, o:list prop.
     main TyGR Prefix Clauses :- std.do! [
-      coq.gref->id TyGR TypeName,
       bedrock.get-indt TyGR VariantI,
       coq.env.indt VariantI _ _ _ _ Ctors _,
       std.map Ctors (c\ c'\ c' = global (indc c)) CTerms,
-      FiniteName is TypeName ^ "_finite",
+      FiniteName is Prefix ^ "finite",
       derive.finite.mk-finite FiniteName CTerms TyGR C,
       Clauses = [finite-done TyGR, finite TyGR (const C)],
       std.forall Clauses (x\
