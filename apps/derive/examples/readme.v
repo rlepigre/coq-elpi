@@ -1,7 +1,7 @@
-(* README *)                            
+(* README *)
 From elpi.apps Require Import derive.std.
- 
-derive Inductive peano := Zero | Succ (p : peano).
+
+#[module] derive Inductive peano := Zero | Succ (p : peano).
 
 (* Bug 8.16: About peano.peano.*)
 (* Notation peano := peano.peano *)

@@ -55,17 +55,26 @@ topo L Deps SL :-
   topo Other NewDeps SOther,
   std.append LNoDeps SOther SL.
 
-pred main i:string, i:bool.
-main T P :- main1 T P.
+pred main i:string.
+main TypeName :- get-option "module" M, !,
+  if (M = "") (Mod = TypeName) (Mod = M),
+  coq.env.begin-module Mod none,
+  main-derive TypeName tt,
+  coq.env.end-module _.
+main TypeName :-
+  main-derive TypeName ff.
+
+pred main-derive i:string, i:bool.
+main-derive TypeName InModule :- main1 TypeName InModule.
 
 pred main1 i:string, i:bool.
-main1 T P :-
+main1 TypeName InModule :-
   if (get-option "prefix" PFX)
      (Prefix = PFX)
-     (if (P = tt) (Prefix is T ^ "_") (Prefix = "")),
-  std.findall (derivation T Prefix _) L,
+     (if (InModule is ff) (Prefix is TypeName ^ "_") (Prefix = "")),
+  std.findall (derivation TypeName Prefix _) L,
   std.map L (x\r\ x = derivation _ _ r) DL,
   toposort DL SortedDL,
-  chain T SortedDL.
+  chain TypeName SortedDL.
 
 }
