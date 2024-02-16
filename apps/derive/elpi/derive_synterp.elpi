@@ -60,7 +60,9 @@ main T P :- main1 T P.
 
 pred main1 i:string, i:bool.
 main1 T P :-
-  if (P = tt) (Prefix is T ^ "_") (Prefix = ""),
+  if (get-option "prefix" PFX)
+     (Prefix = PFX)
+     (if (P = tt) (Prefix is T ^ "_") (Prefix = "")),
   std.findall (derivation T Prefix _) L,
   std.map L (x\r\ x = derivation _ _ r) DL,
   toposort DL SortedDL,

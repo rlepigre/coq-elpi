@@ -107,7 +107,9 @@ main T P CL :- main1 T P CL.
 
 pred main1 i:gref, i:bool, o:list prop.
 main1 T P CL :-
-  if (P = tt) (Prefix is {coq.gref->id T} ^ "_") (Prefix = ""),
+  if (get-option "prefix" PFX)
+     (Prefix = PFX)
+     (if (P = tt) (Prefix is {coq.gref->id T} ^ "_") (Prefix = "")),
   std.findall (derivation T Prefix _ _) L,
   if (L = [])
      (coq.error "no derivation found, did you Import derive.std?")

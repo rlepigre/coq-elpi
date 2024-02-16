@@ -69,6 +69,7 @@ Elpi Db derive.with_attributes lp:{{
       att "verbose" bool,
       att "only" attmap,
       att "recursive" bool,
+      att "prefix" string,
     ] Opts, !,
     Opts => P.
 }}.
