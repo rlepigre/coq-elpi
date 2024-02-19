@@ -115,6 +115,15 @@ main.aux InModule [GR|GRS] Acc CL :-
   (pi X\get-option "only" X :- !, fail) => Acc => main-derive GR InModule CL1,
   main.aux InModule GRS {std.append CL1 Acc} CL.
 
+pred validate-recursive i:prop, o:derive.
+validate-recursive X R :-
+  if (get-option "recursive" _)
+     (X = derivation _ _ S R,
+      if (S is tt)
+         (coq.error "Synterp actions not supported in recursive derive.")
+         true)
+     (X = derivation _ _ _ R).
+
 pred main1 i:gref, i:bool, o:list prop.
 main1 GR InModule CL :-
   if (get-option "prefix" PFX)
@@ -124,14 +133,7 @@ main1 GR InModule CL :-
   if (L = [])
      (coq.error "no derivation found, did you Import derive.std?")
      true,
-  std.map L (x\r\
-    if (get-option "recursive" _)
-       (x = derivation _ _ S r,
-        if (S is tt)
-           (coq.error "Synterp actions not supported in recursive derive.")
-           true)
-       (x = derivation _ _ _ r)
-  ) DL,
+  std.map L (x\r\ validate-recursive x r) DL,
   validate-only GR DL,
   toposort DL SortedDL,
   chain GR SortedDL CL.
