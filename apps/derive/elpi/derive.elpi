@@ -156,8 +156,13 @@ decl+main TypeName DS :- std.do! [
   if (HasModule = tt)
      (coq.env.end-module _,
       decl+main.post TypeName I DS CL)
-     true
+     check-no-no-alias
 ].
+
+pred check-no-no-alias.
+check-no-no-alias :- get-option "no_alias" tt, !,
+  coq.error "The no_alias attribute only has an effect when a wrapper module is generated.".
+check-no-no-alias.
 
 pred decl+main.post i:string, i:inductive, i:indt-decl, o:list prop. 
 decl+main.post TypeName I DS CL :- std.do! [
@@ -182,6 +187,7 @@ decl+main.post TypeName I DS CL :- std.do! [
 ].
 
 pred short-alias i:id, i:term.
+short-alias _ _ :- get-option "no_alias" tt, !, true.
 short-alias ID T :- @global! => coq.notation.add-abbreviation ID 0 T ff _.
 
 }

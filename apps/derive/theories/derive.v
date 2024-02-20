@@ -73,6 +73,7 @@ Elpi Accumulate lp:{{
       att "recursive" bool,
       att "prefix" string,
       att "module" string,
+      att "no_alias" bool,
     ] Opts, !,
     Opts => P.
 

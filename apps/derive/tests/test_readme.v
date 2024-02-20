@@ -68,7 +68,7 @@ End example4.
 
 Module example5.
   #[prefix=""]
-    derive Inductive peano := Zero | Succ (p : peano).
+  derive Inductive peano := Zero | Succ (p : peano).
 
   Print peano.
   (* Inductive peano : Set :=  Zero : peano | Succ : peano -> peano *)
@@ -79,3 +79,22 @@ Module example5.
   Check eqb_OK.
   (* eqb_OK : forall x1 x2 : peano, reflect (x1 = x2) (eqb x1 x2) *)
 End example5.
+
+Module example6.
+  #[module=Peano,no_alias]
+    derive Inductive peano := Zero | Succ (p : peano).
+
+  Fail Print peano.
+
+  Print Peano.peano.
+  (* Inductive peano : Set := Peano.Zero : peano | Peano.Succ : peano -> peano *)
+
+  Eval compute in Peano.eqb Peano.Zero (Peano.Succ Peano.Zero).
+  (* = false : bool *)
+
+  Check Peano.eqb_OK.
+  (* Peano.eqb_OK : forall x1 x2 : peano, reflect (x1 = x2) (eqb x1 x2) *)
+End example6.
+
+Fail #[no_alias]
+derive Inductive peano := Zero | Succ (p : peano).
