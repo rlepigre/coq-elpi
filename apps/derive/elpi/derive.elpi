@@ -155,18 +155,18 @@ decl+main TypeName DS :- std.do! [
   if-verbose (coq.say "Done"),
   if (HasModule = tt)
      (coq.env.end-module _,
-      decl+main.post ModName I DS CL)
+      decl+main.post TypeName I DS CL)
      true
 ].
 
 pred decl+main.post i:string, i:inductive, i:indt-decl, o:list prop. 
-decl+main.post ModName I DS CL :- std.do! [
+decl+main.post TypeName I DS CL :- std.do! [
   coq.env.indt I _ _ _ _ KS _,
   std.map KS (k\r\ r = indc k) KGRS,
   std.map KGRS coq.gref->id KNS,
   std.map KGRS (gr\r\ r = global gr) KTS,
 
-  std.forall2 [ModName|KNS] [global (indt I)|KTS] short-alias,
+  std.forall2 [TypeName|KNS] [global (indt I)|KTS] short-alias,
 
   coq.indt-decl->implicits DS IndImpls KsImpls,
   if (coq.any-implicit? IndImpls)
