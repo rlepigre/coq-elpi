@@ -16,6 +16,7 @@ begin-ns NS Path In Out :-
   Clause = open-ns NS CP,
   Out = [Clause | In],
   @local! =>
+  coq.say "synterp.begin-ns" (clause _ (after "open-ns:begin") Clause),
   coq.elpi.accumulate current "NES.db"
     (clause _ (after "open-ns:begin") Clause).
 
@@ -54,7 +55,7 @@ end-ns NS Stack In Out :- In => std.do! [
   std.append Path [NS] NewPath,
   New = [ns NewPath M | SubmodNSNodup],
   std.append In New Out,
-  std.forall New (c\ Local => coq.elpi.accumulate current "NES.db" (clause _ _ c)),
+  std.forall New (c\ Local => coq.say "synterp.end-ns" (clause _ _ c), coq.elpi.accumulate current "NES.db" (clause _ _ c)),
 ].
 
 pred iter-> i:list A, i:list A, i:(A -> list A -> list prop -> list prop -> prop), i:list prop, o:list prop.
@@ -92,6 +93,7 @@ pred begin-path i:list string, o:list prop.
 begin-path [] [].
 begin-path ([_|_] as Path) Out :- std.do! [
   coq.env.current-path CP,
+  coq.say "synterp.CP:" CP,
   if (open-ns _ NSCP) (std.assert! (NSCP = CP) "NS: cannot begin a namespace inside a module that is inside a namespace") true,
   std.map {std.findall (open-ns Y_ P_)} open-ns->string Stack,
   if (Stack = []) true (std.do! [

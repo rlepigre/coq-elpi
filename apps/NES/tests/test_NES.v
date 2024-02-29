@@ -1,5 +1,7 @@
 From elpi.apps Require Import NES.
 
+Set Printing Width 400.
+
 (* Some invalid namespaces *)
 Fail NES.Begin.
 Fail NES.Begin "".
@@ -41,6 +43,7 @@ NES.Begin A1.
 NES.Begin B1.
 Definition c := 1.
 NES.End B1.
+Print True.
 NES.Begin B1.
 Definition d := 1.
 NES.End B1.

@@ -1,5 +1,222 @@
 namespace nes {
 
+pred ns->modpath i:prop, o:modpath.
+ns->modpath (ns _ M) M.
+
+pred open-ns->string i:prop, o:string.
+open-ns->string (open-ns S _) S.
+
+pred replay-begin-module i:(id -> prop).
+replay-begin-module P :-
+  coq.next-synterp-action Action,
+  Action = begin-module ID, !,
+  if (P ID)
+     (coq.replay-synterp-action Action)
+     (coq.error "nes.replay-begin-module unexpected module name:" ID).
+replay-begin-module _ :-
+  coq.next-synterp-action Action,
+  coq.error "nes.replay-begin-module unexpected synterp action:" Action.
+
+pred replay-end-module o:modpath.
+replay-end-module MP :-
+  coq.next-synterp-action Action,
+  Action = end-module MP, !,
+  coq.replay-synterp-action Action.
+replay-end-module _ :-
+  coq.next-synterp-action Action,
+  coq.error "nes.replay-end-module unexpected synterp action:" Action.
+
+pred replay-export-module i:modpath.
+replay-export-module MP :-
+  coq.next-synterp-action Action,
+  Action = export-module MP, !,
+  coq.replay-synterp-action Action.
+replay-export-module MP :-
+  coq.next-synterp-action (export-module WrongMP), !,
+  coq.error "nes.replay-export-module unexpected module path:" WrongMP "instead of" MP.
+replay-export-module _ :-
+  coq.next-synterp-action Action, !,
+  coq.error "nes.replay-export-module unexpected synterp action:" Action.
+
+pred replay-import-module i:modpath.
+replay-import-module MP :-
+  coq.next-synterp-action Action,
+  Action = import-module MP, !,
+  coq.replay-synterp-action Action.
+replay-import-module MP :-
+  coq.next-synterp-action (import-module WrongMP), !,
+  coq.error "nes.replay-import-module unexpected module path:" WrongMP "instead of" MP.
+replay-import-module _ :-
+  coq.next-synterp-action Action, !,
+  coq.error "nes.replay-import-module unexpected synterp action:" Action.
+
+pred begin-ns i:string, i:list string, i:list prop, o:list prop.
+begin-ns NS Path In Out :-
+  if (Path = [])
+     (replay-begin-module (x\ not (x = NS), rex.split ("_aux_[0-9]+$") x [NS]))
+     true,
+  replay-begin-module (x\ x = NS),
+  coq.env.current-path CP,
+  Clause = open-ns NS CP,
+  Out = [Clause | In],
+  @local! =>
+  coq.say "interp. begin-ns" (clause _ (after "open-ns:begin") Clause),
+  coq.elpi.accumulate current "NES.db"
+    (clause _ (after "open-ns:begin") Clause).
+
+pred subpath i:list string, i:prop.
+subpath Path (ns Sub _) :- std.appendR _Prefix Path Sub.
+
+pred submod i:modpath, i:prop.
+submod Mod (ns _ SubMod) :-
+  coq.modpath->path SubMod SubPath,
+  coq.modpath->path Mod ModPath,
+  std.appendR ModPath _Suffix SubPath.
+
+pred undup i:list A, i:list A, o:list A.
+undup [] _ [].
+undup [X|XS] Seen YS :- std.mem! Seen X, !, undup XS Seen YS.
+undup [X|XS] Seen [X|YS] :- undup XS [X|Seen] YS.
+
+% end-ns ID Stack ClauseIn ClauseOut
+pred end-ns i:string, i:list string, i:list prop, o:list prop.
+end-ns NS Stack In Out :- In => std.do! [
+  coq.say "interp.end-ns",
+  std.rev Stack Path,
+  std.append Path [NS|END_] PathNoEnd,
+  std.findall (ns PathNoEnd M_) AllNS,
+  replay-end-module M,
+  % stuff inside M
+  std.filter AllNS (submod M) SubmodNS,
+  % since the current program still sees the clauses that will be dropped
+  % after closing M
+  undup SubmodNS [] SubmodNSNodup,
+
+  coq.locate-module NS M,
+  if (Path = [])
+     (std.do! [replay-end-module M_aux, replay-export-module M_aux, Local = @global!])
+     (Local = @local!),
+  % NES.Open can put clauses in scope
+  std.append Path [NS] NewPath,
+  New = [ns NewPath M | SubmodNSNodup],
+  std.append In New Out,
+  std.forall New (c\ Local => coq.say "interp. end-ns" (clause _ _ c), coq.elpi.accumulate current "NES.db" (clause _ _ c)),
+].
+
+pred iter-> i:list A, i:list A, i:(A -> list A -> list prop -> list prop -> prop), i:list prop, o:list prop.
+iter-> _ [] _ O O :- coq.error "No elements".
+iter-> INIT [X] F In Out :- !, F X INIT In Out.
+iter-> INIT [X|XS] F In Out :- F X {std.append XS INIT} In Mid, iter-> INIT XS F Mid Out.
+
+pred iter<- i:list A, i:list A, i:(A -> list A -> list prop -> list prop -> prop), i:list prop, o:list prop.
+iter<- _ [] _ _ _ :- coq.error "No elements".
+iter<- INIT [X] F In Out :- !, F X INIT In Out.
+iter<- INIT [X|XS] F In Out :- iter<- INIT XS F In Mid, F X {std.append XS INIT} Mid Out.
+
+% Panics unless [S] well-formed.
+pred string->non-empty-ns i:string, o:list string.
+string->non-empty-ns S L :- std.do! [
+  Ident = "[a-zA-Z_][a-zA-Z_0-9']*",	% non-unicode Coq identifiers
+  Path is "^\\(" ^ Ident ^ "\\.\\)*" ^ Ident ^ "$",
+  if (rex.match Path S) true (string->ns.err S),
+  rex.split "\\." S L,
+  if (std.mem L "_") (string->ns.err S) true,
+].
+pred string->ns.err i:string.
+string->ns.err S :-
+  coq.error {calc ("NES: Bad <DotSeparatedPath>: \"" ^ S ^ "\"")}.
+
+% Panics unless [S] empty, or well-formed.
+pred string->ns i:string, o:list string.
+string->ns "" [] :- !.
+string->ns S L :- string->non-empty-ns S L.
+
+pred ns->string i:list string, o:string.
+ns->string NS S :- std.string.concat "." NS S.
+
+pred begin-path i:list string, o:list prop.
+begin-path [] [].
+begin-path ([_|_] as Path) Out :- std.do! [
+  coq.env.current-path CP,
+  coq.say "interp. CP:" CP,
+  if (open-ns _ NSCP) (std.assert! (NSCP = CP) "NS: cannot begin a namespace inside a module that is inside a namespace") true,
+  std.map {std.findall (open-ns Y_ P_)} open-ns->string Stack,
+  if (Stack = []) true (std.do! [
+    coq.locate-all {std.string.concat "." Path} L,
+    if (std.do! [
+       std.mem L (loc-modpath M),
+       coq.modpath->path M MP,
+       MP = {std.append CP Path}
+    ])
+      (iter-> [] Stack end-ns [] _, iter<- [] Stack begin-ns [] _)
+      true,
+  ]),
+  iter<- Stack {std.rev Path} begin-ns [] Out,
+
+  open-super-path Path [],
+
+].
+
+pred std.time-do! i:list prop.
+std.time-do! [].
+std.time-do! [P|PS] :-
+  std.time P T, coq.say P "\ntakes" T "\n",
+  !,
+  std.time-do! PS.
+
+pred end-path i:list string, o:list prop.
+end-path [] [].
+end-path ([_|_] as Path) Out :- std.do! [
+  coq.say "interp.end-path",
+  std.map {std.findall (open-ns X_ P_)} nes.open-ns->string Stack,
+  std.assert! (std.appendR {std.rev Path} Bottom Stack) "NES: Ending a namespace that is not begun",
+  nes.iter-> Bottom {std.rev Path} nes.end-ns [] Out,
+].
+
+
+pred open-path i:list string.
+open-path Path :- std.do! [
+  std.map {std.findall (ns Path M_)} nes.ns->modpath Mods,
+  std.forall Mods replay-import-module
+].
+
+pred open-super-path i:list string, i:list string.
+open-super-path [] _.
+open-super-path [P|PS] ACC :-
+  std.append ACC [P] Cur,
+  open-path Cur,
+  open-super-path PS Cur.
+
+% Currently open namespace, or [].
+pred current-path o:list string.
+current-path NS :- std.do! [
+  std.map {std.findall (open-ns X_ P_)} nes.open-ns->string Stack,
+  std.rev Stack NS,
+].
+
+% Find an existing namespace, or panic.
+pred resolve i:string, o:list string.
+resolve S Path :- std.do! [
+  if (Top = "^_\\.", rex.match Top S) (std.do! [
+    rex.replace Top "" S S',
+    string->non-empty-ns S' NS,
+    if (ns NS _) (Path = NS) (resolve.err S'),
+  ])(
+    resolve.walk S {current-path} {string->non-empty-ns S} Path
+  ),
+].
+pred resolve.walk i:string, i:list string, i:list string, o:list string.
+resolve.walk S Ctx SP Path :- std.do! [
+  std.append Ctx SP Candidate,
+  ( ns Candidate _, Path = Candidate
+  ; Ctx = [], resolve.err S
+  ; resolve.walk S {std.drop-last 1 Ctx} SP Path ),
+].
+pred resolve.err i:string.
+resolve.err S :- coq.error "NES: Namespace not found:" S.
+
+
+
 % Print a namespace
 pred print-path i:list string, i:(gref -> coq.pp -> prop).
 print-path Path PP :- std.do! [
